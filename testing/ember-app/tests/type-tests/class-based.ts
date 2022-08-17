@@ -1,6 +1,8 @@
 import { Resource } from 'ember-resources';
 import { expectType } from 'ts-expect';
 
+import type { ExpandArgs } from 'ember-resources';
+
 class A extends Resource {
   a = 1;
 }
@@ -38,4 +40,27 @@ export class C extends Resource<CArgs> {
     expectType<number>(named.num);
     expectType<string>(named.str);
   }
+}
+
+type DArgs<T = unknown> = {
+  Positional: [];
+  Named: {
+    foo: T;
+  };
+};
+
+export class D<MyType = unknown> extends Resource<DArgs<MyType>> {
+  modify(
+    positional: ExpandArgs<DArgs<MyType>>['Positional'],
+    named: ExpandArgs<DArgs<MyType>>['Named']
+  ) {
+    expectType<never[]>(positional);
+    expectType<{ foo: MyType }>(named);
+  }
+}
+
+export class DUsage {
+  foo = 2;
+  // Available in TS 4.7+
+  myInstance = D<number>.from(() => ({ foo: this.foo }));
 }
